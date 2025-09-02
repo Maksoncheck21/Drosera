@@ -45,7 +45,8 @@ contract GasPriceAnomalyTrap is ITrap {
 
         return (false, "");
     }
-}```
+}
+```
 ## Response Contract: LogGasAlertReceiver.sol
 ```solidity//
  SPDX-License-Identifier: MIT
