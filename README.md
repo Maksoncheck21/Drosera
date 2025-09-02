@@ -46,8 +46,9 @@ contract GasPriceAnomalyTrap is ITrap {
         return (false, "");
     }
 }```
-##Response Contract: LogGasAlertReceiver.sol
-```// SPDX-License-Identifier: MIT
+## Response Contract: LogGasAlertReceiver.sol
+```solidity//
+ SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 contract LogGasAlertReceiver {
@@ -57,31 +58,32 @@ contract LogGasAlertReceiver {
         emit GasAlert(currentBaseFee, message);
     }
 }```
-##Benefits
+## Benefits
 1. Detects suspicious or abnormal changes in Ethereum base fee.
 
 2. Provides automated logging of gas anomalies.
 
 3. Integrates with automation or monitoring logic for proactive response.
 
-##Deployment & Setup
+## Deployment & Setup
 1. Deploy both contracts to an Ethereum network using your preferred tool (e.g., Foundry or Hardhat).
 
 2. Connect the trap to the response contract in drosera.toml:
-```[traps.gastrap]
+```solidity
+[traps.gastrap]
 path = "out/GasPriceAnomalyTrap.sol/GasPriceAnomalyTrap.json"
 response_contract = "<LogGasAlertReceiver address>"
 response_function = "logGasAnomaly(uint256,string)"```
 3. Apply changes in Drosera to start monitoring blocks in real time.
 
-##Testing
+## Testing
 1. Simulate blocks with changing baseFee on a testnet.
 
 2. Wait 1–3 blocks.
 
 3. Observe logs from Drosera operator: shouldRespond='true' appears in logs and dashboard.
 
-##Extensions & Improvements
+## Extensions & Improvements
 1. Dynamic threshold adjustment for anomaly detection.
 
 2. Monitor additional network metrics (tip cap, gas usage).
