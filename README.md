@@ -48,8 +48,8 @@ contract GasPriceAnomalyTrap is ITrap {
 }
 ```
 ## Response Contract: LogGasAlertReceiver.sol
-```solidity//
- SPDX-License-Identifier: MIT
+```solidity
+//SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 contract LogGasAlertReceiver {
@@ -94,10 +94,7 @@ response_function = "logGasAnomaly(uint256,string)"
 3. Chain multiple traps for comprehensive network surveillance.
 
 Author & Date
-Created: September 2, 2025
-
-Author: Maksoncheck21
-
-Telegram: @Makson_check
-
-Discord: makson_check
+# Created: September 2, 2025
+# Author: Maksoncheck21
+# Telegram: @Makson_check
+# Discord: makson_check
