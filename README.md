@@ -1,93 +1,124 @@
-# Drosera
-Ethereum gas price anomaly detection (baseFee ≥5% change)
-⛽ GasChangeTrap
+GasChangeTrap — Drosera Trap SERGEANT
+Objective
 
-A set of smart contracts for detecting anomalies in Ethereum gas price (baseFee from EIP-1559).
-If the base fee changes by ≥5% between two consecutive blocks, the anomaly is flagged and logged.
+Create a deployable Drosera trap that:
 
-📂 Contents
+Monitors Ethereum gas price anomalies (EIP-1559 baseFee) across blocks,
 
-Overview
+Uses the standard collect() / shouldRespond() interface,
 
-Contracts
+Triggers a response when the base fee changes by ≥5%,
 
-GasPriceAnomalyTrap
+Integrates with a separate alert contract to handle responses (LogGasAlertReceiver).
 
-LogGasAlertReceiver
+Problem
 
-How It Works
+Ethereum users, DAOs, and DeFi protocols rely on predictable gas fees for operations. Sudden changes in baseFee can indicate network congestion, frontrunning risks, or abnormal activity affecting transaction costs.
 
-Deployment
+Solution
 
-Example Usage
+Monitor the Ethereum base fee across consecutive blocks and trigger an alert if the change exceeds a defined threshold (5%). Alerts are logged via a dedicated receiver contract.
 
-License
+Trap Logic Summary
+Trap Contract: GasPriceAnomalyTrap.sol
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
-📝 Overview
+import "./ITrap.sol";
 
-GasChangeTrap provides:
+contract GasPriceAnomalyTrap is ITrap {
+    uint256 public constant thresholdPercent = 5; // 5%
 
-collection of current gas price (block.basefee),
+    function collect() external view override returns (bytes memory) {
+        return abi.encode(block.basefee);
+    }
 
-anomaly detection when gas price changes by 5% or more,
+    function shouldRespond(bytes[] calldata data) external pure override returns (bool, bytes memory) {
+        if (data.length < 2) return (false, "Insufficient data");
 
-logging anomalies into a separate receiver contract (LogGasAlertReceiver).
+        uint256 current = abi.decode(data[0], (uint256));
+        uint256 previous = abi.decode(data[1], (uint256));
 
-⚙ Contracts
-GasPriceAnomalyTrap
+        if (previous == 0) return (false, "Previous value is zero");
 
-Implements the ITrap interface and performs anomaly detection.
+        uint256 diff = current > previous ? current - previous : previous - current;
+        uint256 percent = (diff * 100) / previous;
 
-collect() → returns block.basefee as encoded bytes.
+        if (percent >= thresholdPercent) {
+            return (true, "");
+        }
 
-shouldRespond(bytes[] calldata data) → takes two values (current and previous baseFee).
-
-If the difference is ≥5% → returns (true, "").
-
-Otherwise → (false, "").
-
-LogGasAlertReceiver
-
-Receiver contract that logs detected anomalies.
-
-Event:
-
-event GasAlert(uint256 currentBaseFee, string message);
-
-
-Function:
-
-function logGasAnomaly(uint256 currentBaseFee, string calldata message) external;
-
-🔍 How It Works
-
-GasPriceAnomalyTrap.collect() → fetches the current baseFee.
-
-Compares with the previous collected value.
-
-If change ≥5% → anomaly detected.
-
-Calls LogGasAlertReceiver.logGasAnomaly().
-
-Emits a GasAlert event on-chain.
-
-🚀 Deployment
-# Install dependencies
-npm install
-
-# Compile contracts
-npx hardhat compile
-
-# Deploy to local network
-npx hardhat run scripts/deploy.js --network localhost
-
-🧩 Example Usage
-// Check anomaly
-(bool anomaly, ) = gasTrap.shouldRespond(data);
-if (anomaly) {
-    logReceiver.logGasAnomaly(currentBaseFee, "Gas price anomaly detected");
+        return (false, "");
+    }
 }
 
-📜 License
+Response Contract: LogGasAlertReceiver.sol
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
-MIT License. Free to use and modify.
+contract LogGasAlertReceiver {
+    event GasAlert(uint256 currentBaseFee, string message);
+
+    function logGasAnomaly(uint256 currentBaseFee, string calldata message) external {
+        emit GasAlert(currentBaseFee, message);
+    }
+}
+
+What It Solves
+
+Detects suspicious or abnormal changes in Ethereum base fee,
+
+Provides automated logging of gas anomalies,
+
+Can integrate with automation or monitoring logic, e.g., alerting operators during high volatility.
+
+Deployment & Setup Instructions
+1. Deploy Contracts
+
+Example using Foundry:
+
+forge create src/GasPriceAnomalyTrap.sol:GasPriceAnomalyTrap \
+  --rpc-url https://ethereum-hoodi-rpc.publicnode.com \
+  --private-key 0x...
+
+forge create src/LogGasAlertReceiver.sol:LogGasAlertReceiver \
+  --rpc-url https://ethereum-hoodi-rpc.publicnode.com \
+  --private-key 0x...
+
+2. Update drosera.toml
+[traps.gastrap]
+path = "out/GasPriceAnomalyTrap.sol/GasPriceAnomalyTrap.json"
+response_contract = "<LogGasAlertReceiver address>"
+response_function = "logGasAnomaly(uint256,string)"
+
+3. Apply changes
+DROSERA_PRIVATE_KEY=0x... drosera apply
+{F13A1A68-C0D0-4DFE-AF0B-03BA506B3899}
+
+Testing the Trap
+
+Simulate blocks with changing baseFee on a testnet.
+
+Wait 1–3 blocks.
+
+Observe logs from Drosera operator:
+
+shouldRespond='true' appears in logs and dashboard.
+
+Extensions & Improvements
+
+Allow dynamic threshold for anomaly detection,
+
+Track other network metrics such as gas usage or tip cap,
+
+Chain multiple traps using a unified collector.
+
+Date & Author
+
+First created: September 2, 2025
+
+Author: Maksoncheck21
+
+Telegram: @Maksonchek21
+
+Discord: maksonchek21#0001
