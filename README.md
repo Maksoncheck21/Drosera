@@ -58,7 +58,8 @@ contract LogGasAlertReceiver {
     function logGasAnomaly(uint256 currentBaseFee, string calldata message) external {
         emit GasAlert(currentBaseFee, message);
     }
-}```
+}
+```
 ## Benefits
 1. Detects suspicious or abnormal changes in Ethereum base fee.
 
@@ -74,7 +75,8 @@ contract LogGasAlertReceiver {
 [traps.gastrap]
 path = "out/GasPriceAnomalyTrap.sol/GasPriceAnomalyTrap.json"
 response_contract = "<LogGasAlertReceiver address>"
-response_function = "logGasAnomaly(uint256,string)"```
+response_function = "logGasAnomaly(uint256,string)"
+```
 3. Apply changes in Drosera to start monitoring blocks in real time.
 
 ## Testing
